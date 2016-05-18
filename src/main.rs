@@ -3,6 +3,10 @@ extern crate hyper;
 use hyper::Client;
 use hyper::status::StatusCode;
 use std::io::Read;
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+
+mod anybar;
+
 
 fn get_buerostatus() -> Option<bool> {
     let client = Client::new();
@@ -32,9 +36,34 @@ fn get_buerostatus() -> Option<bool> {
     }
 }
 
+
+fn set_color(color: &str, port: u16) {
+    let ip = Ipv4Addr::new(127, 0, 0, 1);
+
+    // sender and target address
+    let sender = SocketAddrV4::new(ip, 0);
+    let target = SocketAddrV4::new(ip, port);
+
+    // transform color into a vector
+    let mut message: Vec<u8> = Vec::new();
+    message.extend(color.as_bytes()
+                          .iter()
+                          .cloned());
+
+    // send message
+    anybar::send_message(SocketAddr::V4(sender),
+                         SocketAddr::V4(target),
+                         message)
+}
+
+
 fn main() {
-    match get_buerostatus() {
-        Some(is_open) => println!("Is it open? {}", is_open),
-        None          => println!("Didn't work! :o"),
+    let color = match get_buerostatus() {
+        Some(true)  => "green",
+        Some(false) => "red",
+        None        => "question",
     };
+    println!("{}", color);
+
+    set_color(color, 1738);
 }
