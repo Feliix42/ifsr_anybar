@@ -1,9 +1,12 @@
 extern crate hyper;
+extern crate core;
 
 use hyper::Client;
 use hyper::status::StatusCode;
 use std::io::Read;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::env;
+use core::str::FromStr;
 
 mod anybar;
 
@@ -65,5 +68,14 @@ fn main() {
     };
     println!("{}", color);
 
-    set_color(color, 1738);
+    let mut args = env::args();
+    let ip = match u16::from_str(&args.nth(1).unwrap_or("1738".to_string())) {
+        Ok(ip_addr) => ip_addr,
+        Err(_)      => {
+            println!("[Err] Could not parse port number.");
+            return;
+        }
+    };
+
+    set_color(color, ip);
 }
