@@ -15,6 +15,7 @@ fn get_buerostatus() -> Option<bool> {
     let client = Client::new();
     let url = "https://www.ifsr.de/buerostatus/output.php";
 
+    // Make the request to ifsr.de
     let mut res = match client.get(url).send() {
         Ok(resp) => resp,
         Err(_)   => return None,
@@ -28,11 +29,11 @@ fn get_buerostatus() -> Option<bool> {
     let mut onezero = String::new();
     res.read_to_string(&mut onezero).unwrap();
 
-    println!("{}", onezero);
+    // Check the content of the response
     match onezero.as_ref() {
         "0" => Some(false),
         "1" => Some(true),
-        _   => {
+        _   => { // just in case, the server _should_ always return 1 or 0.
             println!("Unknown return value from ifsr.de!");
             None
         }
@@ -62,12 +63,12 @@ fn set_color(color: &str, port: u16) {
 
 fn main() {
     let color = match get_buerostatus() {
-        Some(true)  => "green",
-        Some(false) => "red",
-        None        => "question",
+        Some(true)  => "green",     // someone is in the office
+        Some(false) => "red",       // no one there
+        None        => "question",  // could not fetch the status
     };
-    println!("{}", color);
 
+    // take the UDP port of Anybar as command line argument or default to port 1738
     let mut args = env::args();
     let ip = match u16::from_str(&args.nth(1).unwrap_or("1738".to_string())) {
         Ok(ip_addr) => ip_addr,
@@ -77,5 +78,6 @@ fn main() {
         }
     };
 
+    // set the color
     set_color(color, ip);
 }
